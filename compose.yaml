@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  plip:
+    build: .
+    volumes:
+      - .:/src
+      - ./results:/results
+    working_dir: /results
+    environment:
+      - PYTHONPATH=/src
+    ports:
+      - "8000:8000"
