@@ -91,7 +91,7 @@ def _run_plip_analysis(task_id: str, pdb_file: str, output_dir: str, plip_config
             
             # Generate reports
             report = StructureReport(complex)
-            print(report)
+
             if config.XML:
               
                 results[binding_site] = report.write_xml(as_string=False)

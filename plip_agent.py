@@ -85,7 +85,6 @@ class PLIPAgent:
 
                 if status['status'] == 'completed':
                     #print(f"[AGENT] Analysis completed successfully")
-                    self._save_reports(pdb_id, status)
                     return status
                 elif status['status'] == 'failed':
                     #print(f"[AGENT] Analysis failed with error: {status.get('error')}")
@@ -102,30 +101,6 @@ class PLIPAgent:
             logger.error(f"Error analyzing structure {pdb_id}: {str(e)}")
             raise
 
-    def _save_reports(self, pdb_id: str, status: dict) -> None:
-
-        
-        if 'txt_reports' in status and status['txt_reports'] is not None:
-            txt_path = self.output_dir / f"{pdb_id}_report.txt"
-
-  
-            with open(txt_path, 'w') as f:
-                for binding_site, report in status['txt_reports'].items():
-                    if report is not None:  # Only write if report exists
-                        f.write(f"\n=== Binding Site: {binding_site} ===\n")
-                        f.write(report)
-                        f.write("\n")
-      
-
-        # Save XML report
-        if 'results' in status and status['results'] is not None:
-            xml_path = self.output_dir / f"{pdb_id}_report.xml"
-           
-            with open(xml_path, 'w') as f:
-                for binding_site, report in status['results'].items():
-                    if report is not None:  # Only write if report exists
-                        f.write(report)
-      
 
 
 async def main():
