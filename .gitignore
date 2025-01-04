@@ -50,3 +50,8 @@ target/
 .nfs*
 tests/
 notes.md
+# Storage contents except .gitkeep
+storage/*
+!storage/.gitkeep
+# Zip files
+*.zip
