@@ -10,20 +10,24 @@ RUN apt-get update && apt-get install -y \
     python3-distutils \
     python3-lxml \
     python3-openbabel \
-    python3-pymol; \
+    python3-pymol \
+    python3-pip \
+    python3-dev; \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies for API
+COPY requirements.txt /tmp/
+RUN pip3 install -r /tmp/requirements.txt
 
 # copy PLIP source code
 WORKDIR /src
-ADD plip/ plip/
+COPY . .
 RUN chmod +x plip/plipcmd.py
 ENV PYTHONPATH=/src
 
-# execute tests
-WORKDIR /src/plip/test
-RUN chmod +x run_all_tests.sh
-RUN ./run_all_tests.sh
-WORKDIR /
+# Create storage directory for results
+RUN mkdir -p /storage && chmod 777 /storage
 
-# set entry point to plipcmd.py
-ENTRYPOINT  ["python3", "/src/plip/plipcmd.py"]
+# Switch entry point to API
+EXPOSE 8000
+CMD ["uvicorn", "plip.plip_api:app", "--host", "0.0.0.0", "--port", "8000"]

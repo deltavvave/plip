@@ -6,7 +6,6 @@ class PLIPConfig(BaseModel):
     task_id: str
     pdb_id: Optional[str] = None
     file_content: Optional[str] = None
-    output_dir: str = "storage/results/plip"
     output_format: List[str] = ["xml"]  # xml, txt, pymol
     model: int = Field(default=1, gt=0)  # Model number for multi-model structures
     verbose: bool = False
