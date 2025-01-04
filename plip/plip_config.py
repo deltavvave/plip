@@ -1,11 +1,14 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
 
-class PLIPConfig(BaseModel):
-    """Configuration model for PLIP analysis"""
-    task_id: str
+class InferenceRequest(BaseModel):
+    """Request model for inference endpoint"""
     pdb_id: Optional[str] = None
     file_content: Optional[str] = None
+    output_format: List[str] = ["xml", "txt"]
+
+class PLIPConfig(BaseModel):
+    """Configuration model for PLIP analysis"""
     output_format: List[str] = ["xml"]  # xml, txt, pymol
     model: int = Field(default=1, gt=0)  # Model number for multi-model structures
     verbose: bool = False

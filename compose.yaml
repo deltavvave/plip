@@ -5,6 +5,7 @@ services:
     build: .
     volumes:
       - ./storage:/storage
+      - .:/src
     ports:
       - "8000:8000"
     environment:

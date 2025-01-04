@@ -49,3 +49,4 @@ target/
 *~
 .nfs*
 tests/
+notes.md
