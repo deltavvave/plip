@@ -20,49 +20,61 @@ class PLIPInference:
             with open(error_file, "w") as f:
                 f.write(f"Input pdb_file: {pdb_file}\n")
                 f.write(f"Output dir: {self.output_dir}\n")
-                if os.path.exists(pdb_file):
-                    f.write(f"File exists: {pdb_file}\n")
-                    with open(pdb_file, 'r') as pf:
-                        content = pf.read()
-                    f.write(f"File readable: yes, size: {len(content)} bytes\n")
-                else:
-                    f.write(f"File does not exist: {pdb_file}\n")
+                f.write(f"Output format: {output_format}\n")
 
             self._setup_plip_config(output_format)
+            with open(error_file, "a") as f:
+                f.write(f"Config set - XML: {config.XML}, TXT: {config.TXT}\n")
 
-            with open(os.devnull, 'w') as devnull:
-                with contextlib.redirect_stdout(devnull), contextlib.redirect_stderr(devnull):
-                    complex = PDBComplex()
-                    complex.output_path = str(self.output_dir)
+            complex = PDBComplex()
+            complex.output_path = str(self.output_dir)
 
-                    if pdb_file.startswith('pdb:'):
-                        pdb_id = pdb_file[4:]
-                        pdb_string, _ = fetch_pdb(pdb_id)
-                        # Save fetched content to a temporary file
-                        temp_pdb = Path(self.output_dir) / "input.pdb"
-                        temp_pdb.write_text(pdb_string)
-                        complex.load_pdb(str(temp_pdb))
-                    else:
-                        complex.load_pdb(pdb_file)
+            if pdb_file.startswith('pdb:'):
+                pdb_id = pdb_file[4:]
+                pdb_string, _ = fetch_pdb(pdb_id)
+                temp_pdb = Path(self.output_dir) / "input.pdb"
+                temp_pdb.write_text(pdb_string)
+                complex.load_pdb(str(temp_pdb))
+            else:
+                complex.load_pdb(pdb_file)
 
-                    for ligand in complex.ligands:
-                        try:
-                            complex.characterize_complex(ligand)
-                            report = StructureReport(complex)
-                            if config.XML:
-                                report.write_xml(as_string=False)
-                            if config.TXT:
-                                report.write_txt(as_string=False)
-                        except Exception as ligand_error:
-                            error_file = Path(self.output_dir) / "error.log"
-                            with open(error_file, "w") as f:
-                                f.write(f"Error processing ligand: {str(ligand_error)}")
-                            raise
+            with open(error_file, "a") as f:
+                f.write(f"Found {len(complex.ligands)} ligands\n")
+
+            for i, ligand in enumerate(complex.ligands, 1):
+                try:
+                    complex.characterize_complex(ligand)
+                    report = StructureReport(complex)
+
+                    base_name = f"{ligand.hetid}_{ligand.chain}_{ligand.position}"
+
+                    if config.XML:
+                        xml_path = self.output_dir / f"{base_name}.xml"
+                        with open(error_file, "a") as f:
+                            f.write(f"Writing XML to {xml_path}\n")
+                        report.write_xml(as_string=False)
+
+                    if config.TXT:
+                        txt_path = self.output_dir / f"{base_name}.txt"
+                        with open(error_file, "a") as f:
+                            f.write(f"Writing TXT to {txt_path}\n")
+                        report.write_txt(as_string=False)
+
+                    with open(error_file, "a") as f:
+                        f.write(f"Processed ligand {i}\n")
+
+                except Exception as ligand_error:
+                    with open(error_file, "a") as f:
+                        f.write(f"Error processing ligand {i}: {str(ligand_error)}\n")
+                    raise
+
+            with open(error_file, "a") as f:
+                f.write(f"Final directory contents: {list(self.output_dir.glob('*'))}\n")
 
         except Exception as e:
-            error_file = Path(self.output_dir) / "error.log"
-            with open(error_file, "w") as f:
-                f.write(f"Error in PLIP analysis: {str(e)}")
+            error_file = Path(self.output_dir) / "debug.log"
+            with open(error_file, "a") as f:
+                f.write(f"Error in PLIP analysis: {str(e)}\n")
             raise
 
     def _setup_plip_config(self, output_format: List[str]):

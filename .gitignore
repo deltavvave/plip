@@ -55,3 +55,5 @@ storage/*
 !storage/.gitkeep
 # Zip files
 *.zip
+.DS_Store
+**/.DS_Store

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Path as FastAPIPath
+from fastapi import FastAPI, HTTPException, Path as FastAPIPath, File, UploadFile, Form
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, List
@@ -6,8 +6,8 @@ import logging
 import sys
 from pathlib import Path
 import io
+import json
 from zipfile import ZipFile
-from pydantic import BaseModel
 
 from .plip_task import process_task, get_task_status, list_tasks
 
@@ -17,8 +17,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     force=True
 )
-
-# Configure module logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -26,12 +24,6 @@ logger.setLevel(logging.INFO)
 logging.getLogger("plip").setLevel(logging.WARNING)
 logging.getLogger("openbabel").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
-
-# Request model for inference endpoint
-class InferenceRequest(BaseModel):
-    pdb_id: Optional[str] = None
-    file_content: Optional[str] = None
-    output_format: List[str] = ["xml", "txt"]
 
 app = FastAPI()
 
@@ -49,20 +41,40 @@ def ping():
     return JSONResponse(status_code=200, content={'message': 'pong'})
 
 @app.post('/inference')
-async def inference(request: InferenceRequest):
+async def inference(
+    file: UploadFile | None = File(None),
+    body: str = Form(default="{}")
+):
     """Start PLIP analysis and return task ID"""
     try:
-        # Validate input
-        if not request.file_content and not request.pdb_id:
-            raise HTTPException(
-                status_code=400,
-                detail="Either file_content or pdb_id must be provided"
-            )
-
         logger.info("Received inference request")
 
-        # Pass the entire request model to process_task
-        task_id = await process_task(request.dict())
+        # Create request data with default output formats
+        request_data = {
+            "output_format": ["xml", "txt"]
+        }
+
+        # Handle file upload
+        if file:
+            content = await file.read()
+            request_data["file_content"] = content.decode()
+        else:
+            # Parse body for PDB ID
+            try:
+                body_data = json.loads(body)
+                if 'pdb_id' in body_data:
+                    request_data["pdb_id"] = body_data['pdb_id']
+            except json.JSONDecodeError:
+                pass
+
+        # Validate input
+        if "file_content" not in request_data and "pdb_id" not in request_data:
+            raise HTTPException(
+                status_code=400,
+                detail="Either file or pdb_id in body must be provided"
+            )
+
+        task_id = await process_task(request_data)
         logger.info(f"Created task: {task_id}")
 
         return JSONResponse(
