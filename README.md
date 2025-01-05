@@ -1,3 +1,84 @@
+# PLIP API Service
+
+## Quick Start with Docker
+
+Start the API service:
+```bash
+docker-compose up --build
+```
+
+The service will be available at `http://localhost:8000`.
+
+## API Endpoints
+
+### Health Check
+```bash
+# Check if service is running
+curl http://localhost:8000/ping
+```
+
+### Inference
+Start a new analysis with either a PDB ID or file:
+```bash
+# Using PDB ID
+curl -X POST http://localhost:8000/inference \
+  -F 'body={"pdb_id": "4gv1"}'
+
+# Using PDB file
+curl -X POST http://localhost:8000/inference \
+  -F "file=@path/to/structure.pdb"
+```
+
+Response:
+```json
+{
+    "task_id": "1234-5678-9abc-def0"
+}
+```
+
+### Task Status
+Check the status of an analysis:
+```bash
+curl http://localhost:8000/task_status/1234-5678-9abc-def0
+```
+
+Response:
+```json
+"completed"  # or "running", "failed", "not_found"
+```
+
+### Download Results
+Download the analysis results (after task is completed):
+```bash
+curl -OJ http://localhost:8000/download/1234-5678-9abc-def0
+```
+
+Downloads a zip file containing:
+- Input PDB file
+- Protonated PDB file
+- Analysis results in XML and TXT format for each ligand
+
+### List Tasks
+Get a list of all task IDs:
+```bash
+curl http://localhost:8000/tasks
+```
+
+## Output Format
+Results for each task are stored in `storage/task_id/` with the following structure:
+```
+storage/task_id/
+├── input.pdb              # Original input structure
+├── input_protonated.pdb   # Structure after protonation
+├── report.xml            # Analysis results in XML format
+└── report.txt            # Analysis results in text format
+```
+
+---
+
+```
+
+
 # Protein-Ligand Interaction Profiler (PLIP)
 
 ![PLIP Build](https://github.com/pharmai/plip/workflows/PLIP%20Build/badge.svg)
