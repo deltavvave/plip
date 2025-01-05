@@ -76,8 +76,6 @@ storage/task_id/
 
 ---
 
-```
-
 
 # Protein-Ligand Interaction Profiler (PLIP)
 
