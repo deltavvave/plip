@@ -5,6 +5,7 @@ from pathlib import Path
 import logging
 from typing import Union, Optional
 import asyncio
+import json
 logger = logging.getLogger(__name__)
 
 class PLIPAgent:
@@ -45,6 +46,8 @@ class PLIPAgent:
                     "output_format": ["txt"],
                     "outpath": str(self.output_dir)
                 }
+                files = None
+                body = json.dumps(payload)
                 if not pdb_id:
                     pdb_id = Path(input_structure).stem
             else:
@@ -55,10 +58,16 @@ class PLIPAgent:
                     "output_format": ["txt"],
                     "outpath": str(self.output_dir)
                 }
+                files = None
+                body = json.dumps(payload)
 
             # Submit analysis request
-            #print(f"[AGENT] Submitting analysis request to {self.api_url}/analyze")
-            response = requests.post(f"{self.api_url}/analyze", json=payload)
+            #print(f"[AGENT] Submitting analysis request to {self.api_url}/inference")
+            response = requests.post(
+                f"{self.api_url}/inference",
+                data={"body": body},
+                files=files
+            )
             #print(f"[AGENT] Response status code: {response.status_code}")
             
             if response.status_code != 202:
