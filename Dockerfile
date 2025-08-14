@@ -8,22 +8,24 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies including PLIP requirements
 RUN apt-get update && apt-get install -y \
-    pymol \
-    python3-distutils \
-    python3-lxml \
-    python3-pymol \
-    python3-numpy \
+    python3 \
     python3-pip \
     python3-venv \
     python3-dev \
+    python3-numpy \
+    python3-lxml \
     python3-openbabel \
+    pymol \
+    python3-pymol \
     openbabel \
-    build-essential; \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    build-essential && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    ls -la /usr/bin/python* && \
+    python3 --version
 
 # Setup virtual environment with access to system packages
 ENV VIRTUAL_ENV=/opt/venv
-RUN python3 -m venv $VIRTUAL_ENV --system-site-packages
+RUN /usr/bin/python3 -m venv $VIRTUAL_ENV --system-site-packages
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install API dependencies
@@ -41,4 +43,4 @@ RUN mkdir -p /storage && chmod 777 /storage
 
 # Switch entry point to API
 EXPOSE 8000
-CMD ["python", "-m", "uvicorn", "plip.plip_api:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-include", "*.py"]
+CMD ["python3", "-m", "uvicorn", "plip.plip_api:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-include", "*.py"]
