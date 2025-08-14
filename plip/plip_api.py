@@ -9,7 +9,7 @@ import io
 import json
 from zipfile import ZipFile
 
-from plip_task import process_task, get_task_status, list_tasks
+from plip.plip_task import process_task, get_task_status, list_tasks
 
 # Configure logging
 logging.basicConfig(

@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import Dict
 
-from plip_inference import PLIPInference
+from plip.plip_inference import PLIPInference
 
 # Configure logging
 logger = logging.getLogger(__name__)
