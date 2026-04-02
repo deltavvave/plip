@@ -44,7 +44,7 @@ async def run_inference_task(task_id: str, request_data: dict):
         tasks[task_id] = "completed"
         logger.info(f"Task {task_id} completed successfully")
 
-    except Exception as e:
+    except BaseException as e:
         logger.error(f"Task {task_id} failed: {str(e)}")
         tasks[task_id] = "failed"
 
